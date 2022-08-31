@@ -12,10 +12,10 @@ from libs.datasets import *
 
 
 parser = argparse.ArgumentParser(description='Get Features')
-parser.add_argument('--dataset', default='cub200')
-parser.add_argument('--ckpt', default='')
+parser.add_argument('--dataset', default='agro')
+parser.add_argument('--ckpt', default='checkpoint_Test_discriminative_e_recall@1.pth.tar')
 parser.add_argument('--batchsize', default=128)
-parser.add_argument('--device', default='cuda', help='cpu / cuda')
+parser.add_argument('--device', default='cpu', help='cpu / cuda')
 parser.add_argument('--input_size', default=(224, 224), help='input image size')
 args = parser.parse_args()
 
@@ -42,6 +42,10 @@ if __name__ == '__main__':
         root_dir = 'Datasets/cars196/images'
         dataset = Cars196Dataset(root_dir, transform, is_validation=True)
 
+    elif args.dataset == 'agro':
+        root_dir = 'Datasets/agro/images'
+        dataset = AgroDataset(root_dir, transform, is_validation=True)
+
     elif args.dataset == 'imagenet2012':
         root_dir = 'Datasets/imagenet2012/images'
         dataset = Imagenet2012Dataset(root_dir, transform)
@@ -54,7 +58,10 @@ if __name__ == '__main__':
 
     if os.path.exists(args.ckpt):
         print('Loading checkpoints from {} ...'.format(args.ckpt))
-        state_dict = torch.load(args.ckpt)['state_dict']
+        if args.device == "cpu":
+            state_dict = torch.load(args.ckpt, map_location=torch.device('cpu'))['state_dict']
+        else:
+            state_dict = torch.load(args.ckpt, )['state_dict']
         model.load_state_dict(state_dict)
         print('done')
     elif args.ckpt != '':

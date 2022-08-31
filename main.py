@@ -39,12 +39,12 @@ elif platform.system() == 'Linux':
 parser = argparse.ArgumentParser(description="DetVisGUI")
 
 # dataset information
-parser.add_argument('--dataset', default='cub200', help='cars196 / cub200')
+parser.add_argument('--dataset', default='agro', help='cars196 / cub200')
 parser.add_argument('--input_size', default=(224, 224), help='input image size')
-parser.add_argument('--ckpt', default='', help='model checkpoint path')
+parser.add_argument('--ckpt', default='checkpoint_Test_discriminative_e_recall@1.pth.tar', help='model checkpoint path')
 parser.add_argument('--map', default='no_use', help='compute map and highlight list, no_use / compute / map path')
 parser.add_argument('--k_vals',       nargs='+', default=[1,2,4,8], type=int, help='Recall @ Values.')
-parser.add_argument('--device', default='cuda', help='cpu / cuda')
+parser.add_argument('--device', default='cpu', help='cpu / cuda')
 
 args = parser.parse_args()
 
@@ -64,7 +64,7 @@ class dataset:
         self.val_img_list = []
         # val_img_list = np.load('features/names_{}.npy'.format(args.dataset))
         val_img_list = np.load(osp.join('features', 'names_{}.npy'.format(args.dataset)))
-        
+        splitter = "/"
         for x in val_img_list:
             x = str(Path(x))
             splits = x.split(splitter)
@@ -176,7 +176,10 @@ class vis_tool:
 
         if osp.exists(args.ckpt):
             print('Loading checkpoints from {} ...'.format(args.ckpt))
-            state_dict = torch.load(args.ckpt)['state_dict']
+            if args.device == "cpu":
+                state_dict = torch.load(args.ckpt, map_location=torch.device('cpu'))['state_dict']
+            else:
+                state_dict = torch.load(args.ckpt, )['state_dict']
             self.model.load_state_dict(state_dict)
             print('Done')
         elif args.ckpt != '':
@@ -345,6 +348,7 @@ class vis_tool:
         ans_score = []
 
         # find answer names
+        splitter = "/"
         if not self.data_info.is_query(name):
             for idx in range(len(self.data_info.features)):
                 img_name = self.data_info.val_img_list[idx]
